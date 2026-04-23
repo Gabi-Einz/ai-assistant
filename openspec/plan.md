@@ -4,7 +4,7 @@
 ~~4  Backend · Application layer — use cases con constructor injection tipado a port interfaces, DTOs de entrada/salida~~ ✓ completado
 ~~5  Backend · Infrastructure — repositories MongoDB (MongoChatRepository, MongoMessageRepository), providers (AiSdkProvider, DateTimeProvider, WeatherProvider), tool adapters (get_date, get_time, get_weather), conexión MongoDB + creación de índices al startup~~ ✓ completado
 ~~6  Backend · DI composition root — container.ts: wiring completo de adapters → use cases; context.ts: attach de use cases al contexto tRPC por request~~ ✓ completado
-7  Backend · Primary adapters — Hono app factory, tRPC routers (chat.router.ts, message.router.ts), auth middleware (BetterAuth server setup)
+~~7  Backend · Primary adapters — Hono app factory, tRPC routers (chat.router.ts, message.router.ts), auth middleware (BetterAuth server setup)~~ ✓ completado
 8  Backend · Streaming SSE — endpoint SSE en Hono conectado a IAIProvider.stream(), propagación de StreamEvents (text delta + tool_result) al cliente via ReadableStream
 9  Variables de entorno — schema validado con Zod (MONGODB_URI, AI_API_KEY, WEATHER_API_KEY, BETTERAUTH_SECRET), archivos .env.example para cada app
 10 Frontend · SSR setup — configurar adaptador SSR de TanStack Router (Vinxi/Vite SSR), BetterAuth client, hidratación de TanStack Query con datos pre-fetcheados del servidor

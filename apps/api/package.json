@@ -7,7 +7,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@repo/shared": "workspace:*"
+    "@repo/shared": "workspace:*",
+    "@ai-sdk/anthropic": "^1.2.12",
+    "ai": "^4.3.16",
+    "mongodb": "^6.15.0"
   },
   "devDependencies": {
     "@types/bun": "latest"

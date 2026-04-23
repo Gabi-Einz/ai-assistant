@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec status *)",
+      "Bash(openspec instructions *)",
+      "Bash(xargs grep *)",
+      "Bash(xargs head *)",
+      "Bash(xargs cat *)",
+      "Bash(openspec new *)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm --filter @repo/shared typecheck)",
+      "Bash(pnpm turbo *)",
+      "Bash(pnpm view *)",
+      "Bash(pnpm list *)",
+      "Bash(openspec list *)"
+    ]
+  }
+}

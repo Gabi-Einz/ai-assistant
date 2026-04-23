@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.output/
+.vinxi/
+app.config.timestamp_*.js
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+*.local
+
+# Turborepo
+.turbo/
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS
+.DS_Store
+Thumbs.db

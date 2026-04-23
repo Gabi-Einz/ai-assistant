@@ -1,6 +1,6 @@
 ~~1  Monorepo bootstrap — pnpm workspace, Turborepo config, tsconfig base compartido, estructura de apps/ y packages/~~ ✓ completado
 ~~2  packages/shared — Zod schemas de tool payloads, tipos tRPC compartidos, tipos de entidades (Chat, Message) sin dependencias de framework~~ ✓ completado
-3  Backend · Domain layer — entidades (chat.entity.ts, message.entity.ts), port interfaces (IChatRepository, IMessageRepository, IAIProvider, IDateTimeProvider, IWeatherProvider), domain errors
+~~3  Backend · Domain layer — entidades (chat.entity.ts, message.entity.ts), port interfaces (IChatRepository, IMessageRepository, IAIProvider, IDateTimeProvider, IWeatherProvider), domain errors~~ ✓ completado
 4  Backend · Application layer — use cases con constructor injection tipado a port interfaces, DTOs de entrada/salida
 5  Backend · Infrastructure — repositories MongoDB (MongoChatRepository, MongoMessageRepository), providers (AiSdkProvider, DateTimeProvider, WeatherProvider), tool adapters (get_date, get_time, get_weather), conexión MongoDB + creación de índices al startup
 6  Backend · DI composition root — container.ts: wiring completo de adapters → use cases; context.ts: attach de use cases al contexto tRPC por request

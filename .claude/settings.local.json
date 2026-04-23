@@ -12,7 +12,8 @@
       "Bash(pnpm turbo *)",
       "Bash(pnpm view *)",
       "Bash(pnpm list *)",
-      "Bash(openspec list *)"
+      "Bash(openspec list *)",
+      "Bash(pnpm tsc *)"
     ]
   }
 }

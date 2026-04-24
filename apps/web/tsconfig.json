@@ -6,6 +6,7 @@
     "module": "ESNext",
     "jsx": "react-jsx",
     "paths": {
+      "~/*": ["./app/*"],
       "@repo/shared": ["../../packages/shared/src"],
       "@repo/shared/*": ["../../packages/shared/src/*"]
     }

@@ -10,13 +10,18 @@
   },
   "dependencies": {
     "@repo/shared": "workspace:*",
+    "@tanstack/react-query": "^5.100.1",
     "@tanstack/react-router": "1.120.20",
     "@tanstack/start": "1.120.20",
+    "@trpc/client": "^11.16.0",
+    "@trpc/react-query": "^11.16.0",
+    "better-auth": "^1.2.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "vinxi": "^0.5.3"
   },
   "devDependencies": {
+    "@repo/api": "workspace:*",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "vite-tsconfig-paths": "^5.1.4"

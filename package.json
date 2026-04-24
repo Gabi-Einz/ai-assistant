@@ -15,5 +15,11 @@
     "node": ">=20",
     "pnpm": ">=9"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@9.15.9",
+  "pnpm": {
+    "overrides": {
+      "@tanstack/server-functions-plugin": "1.120.17",
+      "@tanstack/react-start-plugin": "1.120.17"
+    }
+  }
 }

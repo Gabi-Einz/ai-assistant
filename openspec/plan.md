@@ -6,8 +6,8 @@
 ~~6  Backend · DI composition root — container.ts: wiring completo de adapters → use cases; context.ts: attach de use cases al contexto tRPC por request~~ ✓ completado
 ~~7  Backend · Primary adapters — Hono app factory, tRPC routers (chat.router.ts, message.router.ts), auth middleware (BetterAuth server setup)~~ ✓ completado
 ~~8  Backend · Streaming SSE — endpoint SSE en Hono conectado a IAIProvider.stream(), propagación de StreamEvents (text delta + tool_result) al cliente via ReadableStream~~ ✓ completado
-9  Variables de entorno — schema validado con Zod (MONGODB_URI, AI_API_KEY, WEATHER_API_KEY, BETTERAUTH_SECRET)
-10 Frontend · SSR setup — configurar adaptador SSR de TanStack Router (Vinxi/Vite SSR), BetterAuth client, hidratación de TanStack Query con datos pre-fetcheados del servidor
+~~9  Variables de entorno — schema validado con Zod (MONGODB_URI, AI_API_KEY, WEATHER_API_KEY, BETTERAUTH_SECRET)~~ ✓ completado
+~~10 Frontend · SSR setup — configurar adaptador SSR de TanStack Router (Vinxi/Vite SSR), BetterAuth client, hidratación de TanStack Query con datos pre-fetcheados del servidor~~ ✓ completado
 11 Frontend · /auth — RegisterForm y LoginForm con TanStack Form + Zod, validación field-level, redirect server-side si sesión activa, redirect client-side al /chat on success
 12 Frontend · /chat sidebar — ChatList con useInfiniteQuery y cursor-based pagination, SearchInput debounced con URL param q, ChatItem con acciones pin/rename/delete, re-sort pinned first
 13 Frontend · /chat conversation — MessageList, MessageInput, render incremental de streaming deltas, registro toolName → UIComponent (DateCard, TimeCard, WeatherCard), indicador de tool usada, estados empty/loading/error

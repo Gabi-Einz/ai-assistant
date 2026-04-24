@@ -13,7 +13,8 @@
       "Bash(pnpm view *)",
       "Bash(pnpm list *)",
       "Bash(openspec list *)",
-      "Bash(pnpm tsc *)"
+      "Bash(pnpm tsc *)",
+      "Bash(pnpm --filter @repo/web build)"
     ]
   }
 }

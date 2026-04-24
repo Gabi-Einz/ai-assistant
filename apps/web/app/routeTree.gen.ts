@@ -11,9 +11,16 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as ChatImport } from './routes/chat'
 import { Route as AuthImport } from './routes/auth'
 
 // Create/Update Routes
+
+const ChatRoute = ChatImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const AuthRoute = AuthImport.update({
   id: '/auth',
@@ -32,6 +39,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthImport
       parentRoute: typeof rootRoute
     }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -39,32 +53,37 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
+  '/chat': typeof ChatRoute
 }
 
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/chat': typeof ChatRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/auth': typeof AuthRoute
+  '/chat': typeof ChatRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/auth'
+  fullPaths: '/auth' | '/chat'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth'
-  id: '__root__' | '/auth'
+  to: '/auth' | '/chat'
+  id: '__root__' | '/auth' | '/chat'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
+  ChatRoute: typeof ChatRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
+  ChatRoute: ChatRoute,
 }
 
 export const routeTree = rootRoute
@@ -77,11 +96,15 @@ export const routeTree = rootRoute
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/auth"
+        "/auth",
+        "/chat"
       ]
     },
     "/auth": {
       "filePath": "auth.tsx"
+    },
+    "/chat": {
+      "filePath": "chat.tsx"
     }
   }
 }

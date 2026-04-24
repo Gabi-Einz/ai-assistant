@@ -18,7 +18,9 @@
       "Bash(pnpm add *)",
       "Bash(pnpm *)",
       "Bash(xargs dirname *)",
-      "Bash(xargs -I{} grep -r \"ButtonVariants\\\\|button.*variant\" {}/dist/ --include=\"*.d.ts\")"
+      "Bash(xargs -I{} grep -r \"ButtonVariants\\\\|button.*variant\" {}/dist/ --include=\"*.d.ts\")",
+      "Bash(bun test *)",
+      "Bash(bun -e ' *)"
     ]
   }
 }

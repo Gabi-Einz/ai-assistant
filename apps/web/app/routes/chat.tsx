@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { authClient } from "~/lib/auth-client";
 import { Sidebar } from "~/components/sidebar/Sidebar";
+import { Conversation } from "~/components/conversation/Conversation";
 
 const searchSchema = z.object({
   chatId: z.string().optional(),
@@ -23,9 +24,7 @@ function ChatPage() {
   return (
     <div className="flex h-screen bg-background text-foreground">
       <Sidebar />
-      <div className="flex flex-1 items-center justify-center text-muted-foreground">
-        <p>Select a chat or create a new one</p>
-      </div>
+      <Conversation />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-~~1  Monorepo bootstrap — pnpm workspace, Turborepo config, tsconfig base compartido, estructura de apps/ y packages/~~ ✓ completado
+﻿~~1  Monorepo bootstrap — pnpm workspace, Turborepo config, tsconfig base compartido, estructura de apps/ y packages/~~ ✓ completado
 ~~2  packages/shared — Zod schemas de tool payloads, tipos tRPC compartidos, tipos de entidades (Chat, Message) sin dependencias de framework~~ ✓ completado
 ~~3  Backend · Domain layer — entidades (chat.entity.ts, message.entity.ts), port interfaces (IChatRepository, IMessageRepository, IAIProvider, IDateTimeProvider, IWeatherProvider), domain errors~~ ✓ completado
 ~~4  Backend · Application layer — use cases con constructor injection tipado a port interfaces, DTOs de entrada/salida~~ ✓ completado
@@ -10,7 +10,7 @@
 ~~10 Frontend · SSR setup — configurar adaptador SSR de TanStack Router (Vinxi/Vite SSR), BetterAuth client, hidratación de TanStack Query con datos pre-fetcheados del servidor~~ ✓ completado
 ~~11 Frontend · /auth — RegisterForm y LoginForm con TanStack Form + Zod, validación field-level, redirect server-side si sesión activa, redirect client-side al /chat on success~~ ✓ completado
 ~~12 Frontend · /chat sidebar — ChatList con useInfiniteQuery y cursor-based pagination, SearchInput debounced con URL param q, ChatItem con acciones pin/rename/delete, re-sort pinned first~~ ✓ completado
-13 Frontend · /chat conversation — MessageList, MessageInput, render incremental de streaming deltas, registro toolName → UIComponent (DateCard, TimeCard, WeatherCard), indicador de tool usada, estados empty/loading/error
+~~13 Frontend · /chat conversation — MessageList, MessageInput, render incremental de streaming deltas, registro toolName → UIComponent (DateCard, TimeCard, WeatherCard), indicador de tool usada, estados empty/loading/error~~ ✓ completado
 14 Tests — bun:test para unit tests de use cases (mocks de port interfaces), @hono/testing + bun:test para integration tests del API; apuntar al máximo coverage posible
 15 Docker y deploy — Dockerfile multi-stage para apps/api (Bun), docker-compose.yml con MongoDB + API para local dev, vercel.json para apps/web
 16 README — instrucciones de setup, arquitectura elegida, decisiones técnicas, workflow con IA, prompts utilizados, modelos utilizados, qué mejorarías con más tiempo

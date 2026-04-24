@@ -11,6 +11,7 @@ import {
   type QueryClient,
 } from "@tanstack/react-query";
 import { trpc, trpcClient } from "~/lib/trpc";
+import "~/tailwind.css";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
@@ -22,14 +23,14 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>AI Assistant</title>
         <HeadContent />
       </head>
-      <body>
+      <body className="bg-background text-foreground">
         <QueryClientProvider client={queryClient}>
           <trpc.Provider client={trpcClient} queryClient={queryClient}>
             <HydrationBoundary state={dehydrate(queryClient)}>

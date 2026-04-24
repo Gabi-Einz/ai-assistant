@@ -1,5 +1,6 @@
 import { createAnthropic } from '@ai-sdk/anthropic';
 import type { Db } from 'mongodb';
+import { env } from '../env';
 import { MongoChatRepository } from './repositories/mongo-chat.repository';
 import { MongoMessageRepository } from './repositories/mongo-message.repository';
 import { AiSdkProvider } from './ai/ai-sdk.provider';
@@ -20,10 +21,10 @@ export async function initContainer(db: Db) {
   const messageRepo = new MongoMessageRepository(db);
 
   const dateTimeProvider = new DateTimeProvider();
-  const weatherProvider = new WeatherProvider(process.env.WEATHER_API_KEY ?? '');
+  const weatherProvider = new WeatherProvider(env.WEATHER_API_KEY);
   const tools = buildTools({ dateTimeProvider, weatherProvider });
 
-  const anthropic = createAnthropic({ apiKey: process.env.AI_API_KEY ?? '' });
+  const anthropic = createAnthropic({ apiKey: env.AI_API_KEY });
   const model = anthropic('claude-haiku-4-5');
   const aiProvider = new AiSdkProvider(model, tools);
 

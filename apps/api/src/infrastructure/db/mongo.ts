@@ -1,10 +1,8 @@
 import { MongoClient, type Db } from 'mongodb';
+import { env } from '../../env';
 
 export async function connectDb(): Promise<{ client: MongoClient; db: Db }> {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error('MONGODB_URI is not set');
-
-  const client = new MongoClient(uri);
+  const client = new MongoClient(env.MONGODB_URI);
   await client.connect();
   await client.db().command({ ping: 1 });
 

@@ -1,0 +1,12 @@
+**/node_modules
+dist
+.output
+.vercel
+.env
+.env.*
+.git
+.turbo
+coverage
+**/.turbo
+**/dist
+**/.output

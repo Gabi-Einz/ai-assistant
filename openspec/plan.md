@@ -12,5 +12,5 @@
 ~~12 Frontend · /chat sidebar — ChatList con useInfiniteQuery y cursor-based pagination, SearchInput debounced con URL param q, ChatItem con acciones pin/rename/delete, re-sort pinned first~~ ✓ completado
 ~~13 Frontend · /chat conversation — MessageList, MessageInput, render incremental de streaming deltas, registro toolName → UIComponent (DateCard, TimeCard, WeatherCard), indicador de tool usada, estados empty/loading/error~~ ✓ completado
 ~~14 Tests — bun:test para unit tests de use cases (mocks de port interfaces), @hono/testing + bun:test para integration tests del API; apuntar al máximo coverage posible~~ ✓ completado
-15 Docker y deploy — Dockerfile multi-stage para apps/api (Bun), docker-compose.yml con MongoDB + API para local dev, vercel.json para apps/web
+~~15 Docker y deploy — Dockerfile multi-stage para apps/api (Bun), docker-compose.yml con MongoDB + API para local dev, vercel.json para apps/web~~ ✓ completado
 16 README — instrucciones de setup, arquitectura elegida, decisiones técnicas, workflow con IA, prompts utilizados, modelos utilizados, qué mejorarías con más tiempo

@@ -4,14 +4,15 @@
   "main": "./src/index.ts",
   "types": "./src/infrastructure/trpc/router.ts",
   "scripts": {
-    "dev": "bun run --watch src/index.ts",
+    "dev": "bun run --watch --env-file ../../.env src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
   "dependencies": {
-    "@repo/shared": "workspace:*",
     "@ai-sdk/anthropic": "^1.2.12",
+    "@ai-sdk/google": "^1.2.22",
+    "@repo/shared": "workspace:*",
     "@trpc/server": "^11.1.2",
     "ai": "^4.3.16",
     "better-auth": "^1.2.7",

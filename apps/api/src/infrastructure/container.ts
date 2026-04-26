@@ -1,4 +1,4 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import type { Db } from 'mongodb';
 import { env } from '../env';
 import { MongoChatRepository } from './repositories/mongo-chat.repository';
@@ -24,8 +24,8 @@ export async function initContainer(db: Db) {
   const weatherProvider = new WeatherProvider(env.WEATHER_API_KEY);
   const tools = buildTools({ dateTimeProvider, weatherProvider });
 
-  const anthropic = createAnthropic({ apiKey: env.AI_API_KEY });
-  const model = anthropic('claude-haiku-4-5');
+  const google = createGoogleGenerativeAI({ apiKey: env.AI_API_KEY });
+  const model = google('gemini-2.5-flash');
   const aiProvider = new AiSdkProvider(model, tools);
 
   return {

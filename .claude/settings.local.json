@@ -22,7 +22,17 @@
       "Bash(bun test *)",
       "Bash(bun -e ' *)",
       "PowerShell(docker compose build *)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(curl -s http://localhost:3001/auth)",
+      "Bash(curl -s -X POST http://localhost:3000/api/auth/sign-in/email -H 'Content-Type: application/json' -H 'Origin: http://localhost:3001' -d '{\"email\":\"test@test.com\",\"password\":\"password123\"}' -v)",
+      "Bash(curl -s \"http://localhost:3001/auth\")",
+      "Bash(curl -s \"http://localhost:3001/_build/node_modules/.vinxi/cache/client/deps/@tanstack_react-form.js?v=64d7a303\")",
+      "Bash(node -e ' *)",
+      "Bash(node *)",
+      "Bash(python -c \"import sys,json; p=json.load\\(sys.stdin\\); print\\(json.dumps\\(p.get\\('exports',{}\\).get\\('./server-functions-client',{}\\), indent=2\\)\\)\")",
+      "Bash(find node_modules/.pnpm/@tanstack+react-start-client@1.166.40* -name \"index.d.ts\")",
+      "Bash(find node_modules/.pnpm/@tanstack+start-server-functions-client@1.131.50* -name \"*.d.ts\")",
+      "Bash(xargs ls *)"
     ]
   }
 }

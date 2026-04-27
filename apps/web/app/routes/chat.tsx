@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { authClient } from "~/lib/auth-client";
+import { getServerSession } from "~/lib/auth.server";
 import { Sidebar } from "~/components/sidebar/Sidebar";
 import { Conversation } from "~/components/conversation/Conversation";
 
@@ -12,8 +12,8 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/chat")({
   validateSearch: searchSchema,
   beforeLoad: async () => {
-    const { data } = await authClient.getSession();
-    if (!data?.session) {
+    const session = await getServerSession();
+    if (!session?.session) {
       throw redirect({ to: "/auth" as any });
     }
   },

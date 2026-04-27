@@ -23,5 +23,10 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "pnpm": {
+    "patchedDependencies": {
+      "@tanstack/start-config@1.120.20": "patches/@tanstack__start-config@1.120.20.patch"
+    }
+  }
 }

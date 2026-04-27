@@ -8,6 +8,8 @@ export function createBetterAuth(db: Db) {
     database: mongodbAdapter(db),
     emailAndPassword: { enabled: true },
     secret: env.BETTERAUTH_SECRET,
+    baseURL: `http://localhost:${env.PORT}`,
+    trustedOrigins: [env.WEB_URL],
   });
 }
 

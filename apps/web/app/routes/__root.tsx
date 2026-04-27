@@ -3,6 +3,7 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  useRouter,
 } from "@tanstack/react-router";
 import {
   dehydrate,
@@ -10,17 +11,31 @@ import {
   QueryClientProvider,
   type QueryClient,
 } from "@tanstack/react-query";
+import { RouterProvider } from "@heroui/react";
 import { trpc, trpcClient } from "~/lib/trpc";
-import "~/tailwind.css";
+import tailwindUrl from "~/tailwind.css?url";
+
+function NotFoundComponent() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-foreground text-lg">404 — Page not found</p>
+    </div>
+  );
+}
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   {
+    head: () => ({
+      links: [{ rel: "stylesheet", href: tailwindUrl }],
+    }),
     component: RootComponent,
+    notFoundComponent: NotFoundComponent,
   },
 );
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
 
   return (
     <html lang="en" className="dark">
@@ -31,13 +46,18 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body className="bg-background text-foreground">
-        <QueryClientProvider client={queryClient}>
-          <trpc.Provider client={trpcClient} queryClient={queryClient}>
-            <HydrationBoundary state={dehydrate(queryClient)}>
-              <Outlet />
-            </HydrationBoundary>
-          </trpc.Provider>
-        </QueryClientProvider>
+        <RouterProvider
+          navigate={(to) => router.navigate({ to: to as any })}
+          useHref={(to) => router.buildLocation({ to: to as any }).href}
+        >
+          <QueryClientProvider client={queryClient}>
+            <trpc.Provider client={trpcClient} queryClient={queryClient}>
+              <HydrationBoundary state={dehydrate(queryClient)}>
+                <Outlet />
+              </HydrationBoundary>
+            </trpc.Provider>
+          </QueryClientProvider>
+        </RouterProvider>
         <Scripts />
       </body>
     </html>

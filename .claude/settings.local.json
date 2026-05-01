@@ -32,7 +32,20 @@
       "Bash(python -c \"import sys,json; p=json.load\\(sys.stdin\\); print\\(json.dumps\\(p.get\\('exports',{}\\).get\\('./server-functions-client',{}\\), indent=2\\)\\)\")",
       "Bash(find node_modules/.pnpm/@tanstack+react-start-client@1.166.40* -name \"index.d.ts\")",
       "Bash(find node_modules/.pnpm/@tanstack+start-server-functions-client@1.131.50* -name \"*.d.ts\")",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/auth/ok)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001)",
+      "Bash(curl -v -X POST http://localhost:3000/api/auth/sign-up/email -H \"Content-Type: application/json\" -H \"Origin: http://localhost:3001\" -d '{\"email\":\"test_diag@example.com\",\"password\":\"testpass123\",\"name\":\"test_diag@example.com\"}')",
+      "Bash(curl *)",
+      "Bash(netstat -ano)",
+      "PowerShell(Stop-Process *)",
+      "Bash(jobs)",
+      "Bash(powershell.exe -Command \"Get-Process bun -ErrorAction SilentlyContinue | Select-Object Id, ProcessName\")",
+      "Bash(powershell.exe *)",
+      "PowerShell(Get-Process *)",
+      "Bash(findstr \":3000 :3001\")",
+      "Bash(findstr LISTENING)",
+      "PowerShell(Get-NetTCPConnection *)"
     ]
   }
 }

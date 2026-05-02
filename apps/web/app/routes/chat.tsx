@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
-import { getServerSession } from "~/lib/auth.server";
+import { getServerSession } from "~/lib/auth-fns";
 import { Sidebar } from "~/components/sidebar/Sidebar";
 import { Conversation } from "~/components/conversation/Conversation";
 

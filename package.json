@@ -16,17 +16,8 @@
     "pnpm": ">=9"
   },
   "packageManager": "pnpm@9.15.9",
-  "overrides": {
-    "@tanstack/server-functions-plugin": "1.120.17",
-    "@tanstack/react-start-plugin": "1.120.17"
-  },
   "workspaces": [
     "apps/*",
     "packages/*"
-  ],
-  "pnpm": {
-    "patchedDependencies": {
-      "@tanstack/start-config@1.120.20": "patches/@tanstack__start-config@1.120.20.patch"
-    }
-  }
+  ]
 }

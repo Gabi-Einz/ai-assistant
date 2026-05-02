@@ -11,10 +11,13 @@ import { env } from '../../env';
 export function createApp(container: Container, auth: Auth): Hono {
   const app = new Hono();
 
+  const isLocalhost = (origin: string) =>
+    /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
   app.use(
     '*',
     cors({
-      origin: env.WEB_URL,
+      origin: (origin) => (origin && isLocalhost(origin) ? origin : env.WEB_URL),
       credentials: true,
       allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowHeaders: ['Content-Type', 'Authorization'],

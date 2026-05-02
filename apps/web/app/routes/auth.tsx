@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Card, CardContent } from "@heroui/react";
-import { getServerSession } from "~/lib/auth.server";
+import { getServerSession } from "~/lib/auth-fns";
 import { RegisterForm } from "~/components/auth/RegisterForm";
 import { LoginForm } from "~/components/auth/LoginForm";
 

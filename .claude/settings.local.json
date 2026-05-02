@@ -45,7 +45,31 @@
       "PowerShell(Get-Process *)",
       "Bash(findstr \":3000 :3001\")",
       "Bash(findstr LISTENING)",
-      "PowerShell(Get-NetTCPConnection *)"
+      "PowerShell(Get-NetTCPConnection *)",
+      "Skill(playwright-cli)",
+      "PowerShell(Get-ChildItem \"C:\\\\challenges\\\\ai_assistant\" | Where-Object { $_.Name -ne \"node_modules\" } | Select-Object Name)",
+      "PowerShell(dir \"C:\\\\challenges\\\\ai_assistant\\\\apps\\\\web\\\\app\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\challenges\\\\ai_assistant\\\\apps\\\\web\\\\app\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "PowerShell(npx --no-install playwright-cli --version 2>&1)",
+      "PowerShell(playwright-cli *)",
+      "PowerShell(pnpm playwright-cli *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\challenges\\\\ai_assistant\\\\.claude\\\\skills\\\\playwright-cli\" -Recurse -Force | ForEach-Object { $_.FullName })",
+      "PowerShell(netstat *)",
+      "PowerShell([System.IO.Directory]::GetDirectories\\(\"C:\\\\challenges\\\\ai_assistant\\\\apps\\\\web\\\\node_modules\"\\) | Where-Object { $_ -match \"playwright\" })",
+      "PowerShell([System.IO.Directory]::GetDirectories\\(\"C:\\\\challenges\\\\ai_assistant\\\\node_modules\"\\) | Where-Object { $_ -match \"playwright\" })",
+      "PowerShell(npx playwright --version)",
+      "PowerShell(npm list *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\challenges\\\\ai_assistant\\\\apps\\\\api\" -Recurse -File -Force | ForEach-Object { $_.FullName } | Where-Object { $_ -notmatch \"node_modules\" })",
+      "PowerShell(Set-Location \"C:\\\\challenges\\\\ai_assistant\\\\apps\\\\web\"; $env:PLAYWRIGHT_HTML_OPEN=\"never\"; npx playwright test e2e/auth.spec.ts --reporter=line 2>&1)",
+      "Bash(findstr \":3000 \")",
+      "Bash(findstr \":3001 \")",
+      "PowerShell(Get-Content *)",
+      "PowerShell($content = Get-Content \"C:\\\\challenges\\\\ai_assistant\\\\apps\\\\web\\\\node_modules\\\\.vinxi\\\\cache\\\\client\\\\deps\\\\@tanstack_start.js\" -Raw; $lines = $content -split \"`n\"; $lines[212..228] | ForEach-Object { $i = [array]::IndexOf\\($lines, $_\\) + 1; \"$i`: $_\" })",
+      "Bash(playwright-cli open *)",
+      "Bash(playwright-cli console *)",
+      "Bash(npm view *)",
+      "PowerShell(npm view *)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }

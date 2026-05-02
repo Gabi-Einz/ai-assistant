@@ -9,7 +9,13 @@ export function createBetterAuth(db: Db) {
     emailAndPassword: { enabled: true },
     secret: env.BETTERAUTH_SECRET,
     baseURL: `http://localhost:${env.PORT}`,
-    trustedOrigins: [env.WEB_URL],
+    trustedOrigins: (request) => {
+      const origin = request?.headers?.get('origin') ?? '';
+      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+        return [origin];
+      }
+      return [env.WEB_URL];
+    },
   });
 }
 

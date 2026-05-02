@@ -133,7 +133,7 @@ export function ChatItem({ chat, isActive }: ChatItemProps) {
 
       {/* Actions (visible on hover or active) */}
       {!isEditing && (
-        <div className="flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+        <div className={`flex shrink-0 items-center gap-0.5 transition-opacity group-hover:opacity-100 ${isConfirmingDelete ? "opacity-100" : "opacity-0"}`}>
           {/* Pin */}
           <button
             title={chat.isPinned ? "Unpin" : "Pin"}

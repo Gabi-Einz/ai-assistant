@@ -17,6 +17,8 @@ export class AiSdkProvider implements IAIProvider {
 
     const sdkResult = streamText({
       model: this.model,
+      system:
+        'You are a helpful general-purpose AI assistant. Answer any question the user asks. Use your tools when you need the current date, time, or weather; for everything else, answer directly from your knowledge.',
       messages,
       tools: this.tools,
       maxSteps: 5,

@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { Button, Spinner } from "@heroui/react";
 import { trpc } from "~/lib/trpc";
+import { authClient } from "~/lib/auth-client";
 import { SearchInput } from "./SearchInput";
 import { ChatList } from "./ChatList";
 
@@ -12,6 +13,11 @@ export function Sidebar() {
       navigate({ to: "/chat", search: { chatId: chat._id } });
     },
   });
+
+  async function handleLogout() {
+    await authClient.signOut();
+    navigate({ to: "/auth" as any });
+  }
 
   return (
     <div className="flex w-64 shrink-0 flex-col border-r border-white/10 bg-white/5">
@@ -30,6 +36,11 @@ export function Sidebar() {
       </div>
       <div className="flex-1 overflow-y-auto">
         <ChatList />
+      </div>
+      <div className="p-3">
+        <Button fullWidth variant="ghost" onClick={handleLogout}>
+          Logout
+        </Button>
       </div>
     </div>
   );

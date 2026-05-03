@@ -24,7 +24,32 @@ export function createApp(container: Container, auth: Auth): Hono {
     }),
   );
 
-  app.all('/api/auth/*', (c) => auth.handler(c.req.raw));
+  app.all('/api/auth/*', async (c) => {
+    const origin = c.req.header('origin') ?? '';
+    const allowedOrigin = isLocalhost(origin) ? origin : env.WEB_URL;
+
+    if (c.req.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': allowedOrigin,
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+        },
+      });
+    }
+
+    const response = await auth.handler(c.req.raw);
+    const headers = new Headers(response.headers);
+    headers.set('Access-Control-Allow-Origin', allowedOrigin);
+    headers.set('Access-Control-Allow-Credentials', 'true');
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  });
 
   app.route('/api', createStreamRoute(container, auth));
 

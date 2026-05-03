@@ -11,8 +11,11 @@ A fullstack AI assistant challenge. Two screens — `/auth` (register/login) and
 - [Prerequisites](#prerequisites)
 - [Environment Variables](#environment-variables)
 - [Running with Docker](#running-with-docker)
+- [Commands](#commands)
+- [Deployment](#deployment)
 - [Features](#features)
 - [Architecture](#architecture)
+- [Diagrams](#diagrams)
 - [Technical Decisions](#technical-decisions)
 - [AI-Assisted Workflow](#ai-assisted-workflow)
 - [What Would Be Improved](#what-would-be-improved)
@@ -45,7 +48,7 @@ cp .env.example .env
 | `MONGODB_URI` | Yes (local) | MongoDB connection string — overridden by Docker Compose |
 | `AI_API_KEY` | Yes | Google AI Studio API key (used with Gemini 2.5 Flash) |
 | `WEATHER_API_KEY` | Yes | OpenWeatherMap API key |
-| `BETTERAUTH_SECRET` | Yes | Long random string used to sign sessions — any value works locally |
+| `BETTERAUTH_SECRET` | Yes | Random string ≥ 32 characters used to sign sessions (`openssl rand -base64 32`) |
 | `PORT` | No | API port (default: `3000`) |
 | `API_URL` | No | Public base URL of the API — used by BetterAuth to build session URLs (default: `http://localhost:3000`) |
 | `VITE_API_URL` | No | Backend URL consumed by the frontend (default: `http://localhost:3000`) |
@@ -101,7 +104,7 @@ pnpm --filter @repo/api test
 To run tests with coverage report:
 
 ```bash
-pnpm --filter @repo/api test -- --coverage
+pnpm --filter @repo/api test:coverage
 ```
 
 ### Coverage report
@@ -134,6 +137,87 @@ All files                                                            |   83.50 |
 ```
 
 All **application** and **domain** layers have 100% line coverage. Lower coverage in `infrastructure/http/` is expected — the stream route and CORS wrapper require a running AI provider and are covered by manual integration testing rather than automated tests.
+
+---
+
+## Commands
+
+### Frontend
+
+```bash
+# Type checking
+pnpm --filter @repo/web typecheck
+
+# Production build
+pnpm --filter @repo/web build
+```
+
+### Backend
+
+```bash
+# Type checking
+pnpm --filter @repo/api typecheck
+
+# Production build
+pnpm --filter @repo/api build
+
+# Tests
+pnpm --filter @repo/api test
+
+# Tests with coverage
+pnpm --filter @repo/api test:coverage
+```
+
+---
+
+## Deployment
+
+The backend requires a persistent runtime (Docker + Bun) and is not compatible with Vercel serverless. The recommended stack is:
+
+```
+MongoDB Atlas (free M0)  ←  Railway (backend Docker)  ←  Vercel (frontend)
+```
+
+### 1. MongoDB Atlas
+
+- Create a free M0 cluster at [cloud.mongodb.com](https://cloud.mongodb.com)
+- Under **Network Access**, add `0.0.0.0/0` to allow connections from Railway
+- Copy the connection string: `mongodb+srv://user:pass@cluster.mongodb.net/ai_assistant`
+
+### 2. Backend on Railway
+
+- New project → **Deploy from GitHub repo**
+- In **Settings → Build**, configure:
+  - **Root Directory**: `/` (repo root)
+  - **Dockerfile Path**: `apps/api/Dockerfile`
+- Set the following environment variables in the Railway dashboard:
+
+| Variable | Value |
+|----------|-------|
+| `MONGODB_URI` | Atlas connection string |
+| `AI_API_KEY` | Google AI Studio API key |
+| `WEATHER_API_KEY` | OpenWeatherMap API key |
+| `BETTERAUTH_SECRET` | Random string ≥ 32 chars (`openssl rand -base64 32`) |
+| `API_URL` | `https://your-app.railway.app` (Railway-assigned URL) |
+| `WEB_URL` | `https://your-app.vercel.app` (Vercel-assigned URL — set after step 3) |
+
+### 3. Frontend on Vercel
+
+- New project → **Import from GitHub**
+- **Root Directory**: `apps/web`
+- Add the following as a **Build Environment Variable** (not just runtime):
+
+| Variable | Value |
+|----------|-------|
+| `VITE_API_URL` | `https://your-app.railway.app` |
+
+The `apps/web/vercel.json` is already configured with `NITRO_PRESET=vercel` and the correct output directory — no additional Vercel configuration is needed.
+
+### Deployment order
+
+Deploy the backend first to get its public URL, then deploy the frontend. Once Vercel assigns a URL, go back to Railway and set `WEB_URL` to that URL, then trigger a redeploy. This ensures CORS is correctly configured for the production frontend origin.
+
+> **No code changes required.** `API_URL`, `WEB_URL`, the dynamic CORS handler, and `vercel.json` are already in place.
 
 ---
 
@@ -410,3 +494,5 @@ Solution: Add USER bun in the Dockerfile to run the app with less power.
 -Add pretier. Prettier prevents every file from having different conventions for indentation, quotes, trailing commas, etc.—especially useful if there is more than one developer.
 
 -Add swagger to document endpoints.
+
+-Improve test coverage.

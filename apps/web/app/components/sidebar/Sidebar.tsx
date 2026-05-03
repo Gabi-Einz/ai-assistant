@@ -1,4 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button, Spinner } from "@heroui/react";
 import { trpc } from "~/lib/trpc";
 import { authClient } from "~/lib/auth-client";
@@ -7,6 +8,7 @@ import { ChatList } from "./ChatList";
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const createChat = trpc.chat.create.useMutation({
     onSuccess: (chat) => {
@@ -16,6 +18,7 @@ export function Sidebar() {
 
   async function handleLogout() {
     await authClient.signOut();
+    queryClient.clear();
     navigate({ to: "/auth" as any });
   }
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "@tanstack/react-form";
 import { Button, Label, Input, Spinner } from "@heroui/react";
 import { loginSchema } from "@repo/shared";
@@ -8,6 +9,8 @@ import { authClient } from "~/lib/auth-client";
 export function LoginForm() {
   const navigate = useNavigate();
   const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
 
   const form = useForm({
     defaultValues: { email: "", password: "" },
@@ -21,6 +24,7 @@ export function LoginForm() {
         setGlobalError(error.message ?? "Invalid credentials. Please try again.");
         return;
       }
+      queryClient.clear();
       await navigate({ to: "/chat" as any });
     },
   });

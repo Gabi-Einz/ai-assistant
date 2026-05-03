@@ -32,7 +32,7 @@ export class SendMessageUseCase {
     let assistantContent = '';
     const toolResults: ToolResult[] = [];
 
-    for await (const event of this.aiProvider.stream(history, [])) {
+    for await (const event of this.aiProvider.stream(history)) {
       yield event;
       if (event.type === 'text') {
         assistantContent += event.delta;

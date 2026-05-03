@@ -9,7 +9,7 @@ export class AiSdkProvider implements IAIProvider {
     private readonly tools: Record<string, Tool>,
   ) {}
 
-  async *stream(history: Message[], _tools: unknown[]): AsyncGenerator<StreamEvent> {
+  async *stream(history: Message[]): AsyncGenerator<StreamEvent> {
     const messages: CoreMessage[] = history.map((m) => ({
       role: m.role,
       content: m.content,

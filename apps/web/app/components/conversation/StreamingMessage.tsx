@@ -27,7 +27,7 @@ export function StreamingMessage({ text, toolResults }: StreamingMessageProps) {
             )}
           </div>
         )}
-        {hasTools && (
+        {hasTools && toolResults[0] && (
           <>
             <button
               onClick={() => setIsModalOpen(true)}

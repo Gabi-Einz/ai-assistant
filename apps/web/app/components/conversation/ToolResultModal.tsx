@@ -6,7 +6,7 @@ interface ToolResultModalProps {
   onClose: () => void;
   toolName: string;
   payload: unknown;
-  answer?: string;
+  answer?: string | undefined;
 }
 
 export function ToolResultModal({ isOpen, onClose, toolName, payload, answer }: ToolResultModalProps) {

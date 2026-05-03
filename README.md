@@ -256,6 +256,14 @@ During streaming the frontend renders `StreamingMessage` (text bubble + cursor).
 
 ---
 
+## Diagrams
+
+Architecture, sequence, and component diagrams are available in [`openspec/diagrams.md`](openspec/diagrams.md).
+
+> To render the Mermaid diagrams graphically in VS Code, install the [Markdown Preview Mermaid Support](https://marketplace.visualstudio.com/items?itemName=bierner.markdown-mermaid) extension and open the file with **Markdown: Open Preview** (`Ctrl+Shift+V`).
+
+---
+
 ## Technical Decisions
 
 ### 1. Hexagonal Architecture over layered MVC
@@ -358,4 +366,4 @@ This loop made it easy to pause, redirect, or override decisions at every phase 
 
 ---
 
-## What Would Be Improved#
+## What Would Be Improved

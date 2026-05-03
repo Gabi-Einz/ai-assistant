@@ -18,16 +18,21 @@ export class SendMessageUseCase {
     if (!chat) throw new ChatNotFoundError(input.chatId);
     if (chat.userId !== input.userId) throw new UnauthorizedError();
 
-    await this.messageRepository.save({
-      chatId: input.chatId,
-      userId: input.userId,
-      role: 'user',
-      content: input.content,
-      toolResults: [],
-      createdAt: new Date(),
-    });
+    const existingHistory = await this.messageRepository.findByChatId(input.chatId);
+    const userMessageCreatedAt = new Date();
 
-    const history = await this.messageRepository.findByChatId(input.chatId);
+    const history = [
+      ...existingHistory,
+      {
+        _id: '',
+        chatId: input.chatId,
+        userId: input.userId,
+        role: 'user' as const,
+        content: input.content,
+        toolResults: [] as ToolResult[],
+        createdAt: userMessageCreatedAt,
+      },
+    ];
 
     let assistantContent = '';
     const toolResults: ToolResult[] = [];
@@ -40,6 +45,15 @@ export class SendMessageUseCase {
         toolResults.push({ toolName: event.toolName, payload: event.payload });
       }
     }
+
+    await this.messageRepository.save({
+      chatId: input.chatId,
+      userId: input.userId,
+      role: 'user',
+      content: input.content,
+      toolResults: [],
+      createdAt: userMessageCreatedAt,
+    });
 
     await this.messageRepository.save({
       chatId: input.chatId,

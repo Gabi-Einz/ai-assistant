@@ -25,6 +25,10 @@ export class AiSdkProvider implements IAIProvider {
     });
 
     for await (const chunk of sdkResult.fullStream) {
+      if (chunk.type === 'error') {
+        const err = chunk.error;
+        throw err instanceof Error ? err : new Error('AI provider error');
+      }
       if (chunk.type === 'text-delta') {
         yield { type: 'text', delta: chunk.textDelta };
       }

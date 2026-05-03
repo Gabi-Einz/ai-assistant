@@ -11,7 +11,7 @@ A fullstack AI assistant challenge. Two screens — `/auth` (register/login) and
 - [Prerequisites](#prerequisites)
 - [Environment Variables](#environment-variables)
 - [Running with Docker](#running-with-docker)
-- [Running Locally](#running-locally)
+- [Features](#features)
 - [Architecture](#architecture)
 - [Technical Decisions](#technical-decisions)
 - [AI-Assisted Workflow](#ai-assisted-workflow)
@@ -27,7 +27,7 @@ A fullstack AI assistant challenge. Two screens — `/auth` (register/login) and
 | [pnpm](https://pnpm.io) | 9+ | package management (`corepack enable`) |
 | [Bun](https://bun.sh) | 1+ | local API dev server and test runner |
 | [Docker](https://docker.com) | 24+ | containerised stack |
-| Anthropic API key | — | AI responses ([console.anthropic.com](https://console.anthropic.com)) |
+| Google AI Studio API key | — | AI responses via Gemini ([aistudio.google.com](https://aistudio.google.com)) |
 | OpenWeatherMap API key | — | `get_weather` tool ([openweathermap.org](https://openweathermap.org/api)) |
 
 ---
@@ -43,7 +43,7 @@ cp .env.example .env
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes (local) | MongoDB connection string — overridden by Docker Compose |
-| `AI_API_KEY` | Yes | Anthropic (or compatible) API key |
+| `AI_API_KEY` | Yes | Google AI Studio API key (used with Gemini 2.5 Flash) |
 | `WEATHER_API_KEY` | Yes | OpenWeatherMap API key |
 | `BETTERAUTH_SECRET` | Yes | Long random string used to sign sessions — any value works locally |
 | `PORT` | No | API port (default: `3000`) |
@@ -53,11 +53,15 @@ cp .env.example .env
 
 ## Running with Docker
 
-The Docker stack starts MongoDB and the API in isolated containers. No local Bun or MongoDB installation is needed.
+Docker covers the **backend only** (API + MongoDB). The frontend runs locally against the containerised API. This matches the intended deployment split: the backend ships as a container, the frontend deploys to Vercel.
+
+### 1. Start the backend
 
 ```bash
-docker compose up
+docker compose up --build -d
 ```
+
+This starts MongoDB on `:27017` and the Hono API on `:3000`. No local Bun or MongoDB installation is needed.
 
 Verify the API is running:
 
@@ -66,7 +70,18 @@ curl http://localhost:3000/trpc/chat.list
 # → {"error":{"message":"UNAUTHORIZED",...}} — HTTP 401, not a connection error
 ```
 
-To stop and clean up:
+### 2. Start the frontend
+
+In a separate terminal, install dependencies and start the web dev server:
+
+```bash
+pnpm install
+pnpm --filter @repo/web dev
+```
+
+The frontend is now available at `http://localhost:3001` and talks to the API at `http://localhost:3000` via `VITE_API_URL` in `.env`.
+
+### Stopping the backend
 
 ```bash
 docker compose down
@@ -76,26 +91,76 @@ docker compose down
 
 ---
 
-## Running Locally
-
-```bash
-# Install all workspace dependencies
-pnpm install
-
-# Run mongoDb instance
-docker run -d -p 27017:27017 --name mongodb mongo
-
-# Start all apps in parallel (API on :3000, web on :3001)
-pnpm dev
-```
-
-The `MONGODB_URI` in `.env` must point to a running MongoDB instance (e.g., `mongodb://localhost:27017/ai_assistant`).
-
 To run tests:
 
 ```bash
-pnpm test
+pnpm --filter @repo/api test
 ```
+
+To run tests with coverage report:
+
+```bash
+pnpm --filter @repo/api test -- --coverage
+```
+
+### Coverage report
+
+Generated with `bun test --preload ./src/__tests__/setup.ts --coverage` (Bun v1.3.13):
+
+```
+---------------------------------------------------------------------|---------|---------|-------------------
+File                                                                 | % Funcs | % Lines | Uncovered Line #s
+---------------------------------------------------------------------|---------|---------|-------------------
+All files                                                            |   83.50 |   93.95 |
+ src/application/use-cases/chat/create-chat.use-case.ts              |  100.00 |  100.00 |
+ src/application/use-cases/chat/delete-chat.use-case.ts              |  100.00 |  100.00 |
+ src/application/use-cases/chat/list-chats.use-case.ts               |  100.00 |  100.00 |
+ src/application/use-cases/chat/pin-chat.use-case.ts                 |  100.00 |  100.00 |
+ src/application/use-cases/chat/rename-chat.use-case.ts              |  100.00 |  100.00 |
+ src/application/use-cases/chat/search-chats.use-case.ts             |  100.00 |  100.00 |
+ src/application/use-cases/message/list-messages.use-case.ts         |  100.00 |  100.00 |
+ src/application/use-cases/message/send-message.use-case.ts          |  100.00 |  100.00 |
+ src/domain/errors/chat-not-found.error.ts                           |  100.00 |  100.00 |
+ src/domain/errors/unauthorized.error.ts                             |  100.00 |  100.00 |
+ src/infrastructure/trpc/context.ts                                  |  100.00 |  100.00 |
+ src/infrastructure/trpc/middleware/auth.middleware.ts                |  100.00 |  100.00 |
+ src/infrastructure/trpc/router.ts                                    |  100.00 |  100.00 |
+ src/infrastructure/trpc/routers/message.router.ts                   |  100.00 |   68.18 | 14-20
+ src/infrastructure/trpc/routers/chat.router.ts                      |   62.50 |   74.24 | 11-14,42,48-64
+ src/infrastructure/http/app.ts                                      |   60.00 |   54.55 | 14,27-50
+ src/infrastructure/http/stream.route.ts                             |   50.00 |   15.38 | 9-41
+---------------------------------------------------------------------|---------|---------|-------------------
+```
+
+All **application** and **domain** layers have 100% line coverage. Lower coverage in `infrastructure/http/` is expected — the stream route and CORS wrapper require a running AI provider and are covered by manual integration testing rather than automated tests.
+
+---
+
+## Features
+
+### Authentication
+- Email/password register and login via BetterAuth
+- Session-based auth with per-request validation on all tRPC procedures
+- Logout button in the sidebar clears the React Query cache — switching accounts immediately shows the correct chat list without a page reload
+
+### Chat Management
+- Create, rename, pin/unpin, and delete conversations from the sidebar
+- Infinite scroll pagination in the chat list
+- Full-text search across conversation titles
+- Active chat persisted in the URL (`?chatId=...`)
+
+### AI Responses
+- Real-time streaming via SSE — text appears as it is generated
+- General-purpose assistant: answers any question directly from its knowledge
+- Tool calling with up to 5 agentic steps per message (Vercel AI SDK `maxSteps`)
+
+### Tool Calling UI
+- When the AI uses a tool (`get_date`, `get_time`, `get_weather`), a button labelled with the tool name appears below the AI's text response
+- Clicking the button (or automatically on first arrival during streaming) opens a popup showing the tool name and a purpose-built UI card with the result:
+  - **DateCard** — formatted current date
+  - **TimeCard** — formatted current time
+  - **WeatherCard** — location, temperature, condition, and humidity
+- The AI's text answer is shown in the chat bubble; the raw data lives only in the popup
 
 ---
 
@@ -160,22 +225,34 @@ Wiring sequence in `container.ts`:
 
 `infrastructure/trpc/context.ts` attaches use cases from the container to the tRPC context per request.
 
+### AI Provider
+
+The `AiSdkProvider` wraps the Vercel AI SDK's `streamText` function using **Google Gemini 2.5 Flash** as the model. It exposes the `IAIProvider` port, so the model can be swapped (e.g., to Anthropic Claude or OpenAI) by replacing only the adapter without touching any use case or domain code.
+
+Available tools injected at construction time:
+
+| Tool | Description |
+|------|-------------|
+| `get_date` | Returns the current date from `IDateTimeProvider` |
+| `get_time` | Returns the current time from `IDateTimeProvider` |
+| `get_weather` | Fetches weather for a location via `IWeatherProvider` |
+
 ### Streaming Flow
 
 ```
 User submits message
-    → tRPC mutation (primary adapter)
+    → POST /api/stream (Hono route)
     → SendMessageUseCase.execute()
     → IAIProvider.stream()          ← domain port
-    → AiSdkProvider.stream()        ← secondary adapter
-    → AI SDK streamText()
-    → yields text deltas + tool_result events
-    → ReadableStream to browser (SSE)
-    → text chunks appended live / ToolResultCard rendered per tool call
+    → AiSdkProvider.stream()        ← secondary adapter (Gemini 2.5 Flash)
+    → Vercel AI SDK streamText()
+    → yields text deltas → streamed to browser via SSE
+    → yields tool_result events after all steps complete
     → stream ends → full assistant message + tool results persisted to DB
+    → React Query cache invalidated → MessageList refetches
 ```
 
-Streaming components (`StreamingMessage`, `ToolResultCard`) are CSR-only and never server-rendered.
+During streaming the frontend renders `StreamingMessage` (text bubble + cursor). When a `tool_result` event arrives, `ToolResultModal` opens automatically. After the stream ends the final `MessageBubble` shows the persisted message with a button to reopen the tool popup.
 
 ---
 
@@ -223,6 +300,13 @@ The `/auth` route needs server-side session validation before the first byte is 
 
 BetterAuth provides a production-grade session lifecycle (creation, validation, expiry, revocation) without requiring custom JWT signing logic, refresh token rotation, or CSRF handling. It integrates with MongoDB natively and exposes a typed server interface that works inside the Hono adapter. The only tradeoff is an additional dependency; the benefit is not reinventing security-critical infrastructure under time pressure.
 
+### 7. Tool result popup over inline rendering
+
+**Chosen:** Modal popup triggered by a button below the AI message  
+**Alternative considered:** Inline card rendered directly inside the chat bubble
+
+Rendering tool data (date, time, weather) inline mixes structured UI with the conversation flow and repeats information already present in the AI's text answer. A popup decouples the data visualisation from the chat thread — the text answer stays in the bubble and the structured data is available on demand. During streaming the popup opens automatically; for persisted messages a button labelled with the tool name reopens it.
+
 ---
 
 ## AI-Assisted Workflow
@@ -245,31 +329,18 @@ This loop made it easy to pause, redirect, or override decisions at every phase 
 |-------|-------|
 | **Claude Sonnet 4.6** | Primary model throughout — architecture proposals, spec writing, all implementation tasks, debugging |
 
-### Representative Prompts
+### Used Prompts
 
-**Planning phase** — generating a change spec for the backend domain layer:
-```
-Usa opsx:propose para el paso 3 del plan: backend domain layer.
-Lee requirements.md y diagrams.md antes de generar la propuesta.
-```
-
-**Implementation phase** — applying tasks for a specific step:
-```
-Ejecuta opsx:apply para implementar los cambios del paso 7 (primary adapters).
-```
-
-**Debugging phase** — fixing a Docker build failure mid-session:
-```
-execute steps 5.1 and 5.2 of openspec/docker-deploy
-```
-Claude identified that `corepack` is not available in `oven/bun:1-alpine`, proposed three fix options, and applied the chosen one before retrying the build. It also caught a `pnpm-lock.yaml` config mismatch and regenerated the lockfile locally before re-running `docker compose build`.
-
-**Review phase** — redirecting a proposed fix:
-```
-[user rejected the edit]
-execute steps 5.1 and 5.2 of openspec/docker-deploy
-```
-Claude paused, explained the root cause and three alternatives, and waited for direction rather than guessing.
+- Please read openspec/project.md and help me creating another file called requirements.md following the OpenSpec standard with details about my project, tech stack, architecture, conventions, actors, workflows and Technical Constraints.
+- /opsx:propose "Refactorizar la arquitectura del proyecto en requirements.md hacia un modelo Hexagonal (Ports & Adapters). Define la separación de capas, la regla de dependencia hacia el dominio y la estructura de directorios sugerida (src/domain, src/application, src/infrastructure). Ten en cuenta Dependency injection para las capas correspondientes en una arquitectura hexagonal.”
+- Ten en cuenta que se debe usar SSR (Server-Side Rendering) para la autenticación y carga inicial. Para la experiencia de chat (streaming) debes usar CSR (Client-Side Rendering). Agregalo al archivo requirements.md
+- Usa camelCase e ingles para nombramiento de variables y funciones que deben ser descriptivas para facil lectura del desarrollador. La UI debe ser simple y funcional. Agrega estas aclaraciones al archivo requirements.md
+- Usa dark theme para la UI, agregalo al archivo requirements.md
+- Genera diagrama de clases, diagramas de secuencia, diagrama de arquitectura y cualquier otro diagrama que consideres importante para el proyecto, para ello usa Mermaid.js y agregalos a openspec/diagrams.md
+- Claude, lee `requirements.md` y `diagrams.md`. He creado un borrador en `plan.md`. Revísalo y dime si falta algún paso técnico para cumplir con los diagramas.
+    - Claude, inicia el **paso 16** de `plan.md`. Usa `opsx:propose` para generar la especificación técnica. Lee `requirements.md` y `diagrams.md` para asegurar que la propuesta sea coherente con la arquitectura.
+    - La propuesta para el paso 16 se ve correcta. Ejecuta `opsx:apply` para implementar los cambios.
+    - El paso 16 está completado. Ejecuta `opsx:archive` y actualiza el `plan.md` marcando el paso como completado.
 
 ### Honest Assessment
 
@@ -287,22 +358,4 @@ Claude paused, explained the root cause and three alternatives, and waited for d
 
 ---
 
-## What Would Be Improved
-
-**1. Streaming message persistence**  
-Currently, the full assistant message (including all tool results) is persisted to MongoDB only after the stream ends. Under a long AI response, a connection drop loses the entire message. A better approach would be to persist text deltas incrementally or use a write-ahead approach with a `streaming` status flag. Deferred due to time; the persistence logic is isolated in `SendMessageUseCase`, making it a focused change.
-
-**2. Integration test coverage**  
-Unit tests cover use cases with mocked ports. There are no integration tests exercising the full HTTP stack (Hono → tRPC → real MongoDB). The Hexagonal structure makes these straightforward to add (spin up a real MongoDB, instantiate `container.ts`, call the Hono app via `@hono/testing`), but wiring up test fixtures and seed data takes time that was allocated elsewhere.
-
-**3. Optimistic UI for chat mutations**  
-Rename, pin, and delete operations trigger a server round-trip before the sidebar updates. TanStack Query supports optimistic updates out of the box — the mutation can update the cache immediately and roll back on error. Omitted in favour of correctness over perceived performance.
-
-**4. Rate limiting and input validation at the HTTP boundary**  
-All tRPC inputs are Zod-validated, but there is no rate limiting on the `messages.send` procedure. A single authenticated user could exhaust the AI API budget with a fast client. A per-user token-bucket rate limiter at the Hono middleware layer would be the right fix; deferred because it requires a Redis or in-memory store decision that is out of scope for the challenge.
-
-**5. Virtual scrolling for long conversation threads**  
-`MessageList` renders all messages in a conversation as a flat list. For long threads this becomes a performance issue. `@tanstack/react-virtual` integrates directly with TanStack Query's paginated data and would fix this; omitted because the challenge scenarios don't involve threads long enough to trigger it.
-
-**6. Frontend error boundaries and retry UI**  
-Network errors during streaming are caught but surface as a generic error state. A retry button that re-sends the last user message, combined with a React error boundary that isolates streaming failures to the conversation pane, would significantly improve resilience. The hooks and mutation state are already in place; only the UI layer is missing.
+## What Would Be Improved#

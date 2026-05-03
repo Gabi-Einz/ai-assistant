@@ -7,7 +7,7 @@
     "dev": "bun run --watch --env-file ../../.env src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test --preload ./src/__tests__/setup.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",

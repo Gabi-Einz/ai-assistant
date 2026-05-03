@@ -10,6 +10,5 @@ const container = await initContainer(db);
 const auth = createBetterAuth(db);
 const app = createApp(container, auth);
 
-console.log(`API listening on port ${env.PORT}`);
-
-export default { fetch: app.fetch, port: env.PORT };
+const server = Bun.serve({ fetch: app.fetch, port: env.PORT });
+console.log(`API listening on port ${server.port}`);

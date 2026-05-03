@@ -8,7 +8,7 @@ export function createBetterAuth(db: Db) {
     database: mongodbAdapter(db),
     emailAndPassword: { enabled: true },
     secret: env.BETTERAUTH_SECRET,
-    baseURL: `http://localhost:${env.PORT}`,
+    baseURL: env.API_URL,
     trustedOrigins: (request) => {
       const origin = request?.headers?.get('origin') ?? '';
       if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {

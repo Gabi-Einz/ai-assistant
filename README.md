@@ -47,6 +47,7 @@ cp .env.example .env
 | `WEATHER_API_KEY` | Yes | OpenWeatherMap API key |
 | `BETTERAUTH_SECRET` | Yes | Long random string used to sign sessions — any value works locally |
 | `PORT` | No | API port (default: `3000`) |
+| `API_URL` | No | Public base URL of the API — used by BetterAuth to build session URLs (default: `http://localhost:3000`) |
 | `VITE_API_URL` | No | Backend URL consumed by the frontend (default: `http://localhost:3000`) |
 
 ---

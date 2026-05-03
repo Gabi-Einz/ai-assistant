@@ -1,4 +1,4 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
 import type { Db } from 'mongodb';
 import { env } from '../env';
 import { MongoChatRepository } from './repositories/mongo-chat.repository';
@@ -24,8 +24,8 @@ export async function initContainer(db: Db) {
   const weatherProvider = new WeatherProvider(env.WEATHER_API_KEY);
   const tools = buildTools({ dateTimeProvider, weatherProvider });
 
-  const google = createGoogleGenerativeAI({ apiKey: env.AI_API_KEY });
-  const model = google('gemini-2.5-flash');
+  const openai = createOpenAI({ apiKey: env.AI_API_KEY });
+  const model = openai('gpt-4.1-nano');
   const aiProvider = new AiSdkProvider(model, tools);
 
   return {

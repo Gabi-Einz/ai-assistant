@@ -30,7 +30,7 @@ A fullstack AI assistant challenge. Two screens — `/auth` (register/login) and
 | [pnpm](https://pnpm.io) | 9+ | package management (`corepack enable`) |
 | [Bun](https://bun.sh) | 1+ | local API dev server and test runner |
 | [Docker](https://docker.com) | 24+ | containerised stack |
-| Google AI Studio API key | — | AI responses via Gemini ([aistudio.google.com](https://aistudio.google.com)) |
+| OpenAI API key | — | AI responses via gpt-4.1-nano ([platform.openai.com](https://platform.openai.com/api-keys)) |
 | OpenWeatherMap API key | — | `get_weather` tool ([openweathermap.org](https://openweathermap.org/api)) |
 
 ---
@@ -46,7 +46,7 @@ cp .env.example .env
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `MONGODB_URI` | Yes (local) | MongoDB connection string — overridden by Docker Compose |
-| `AI_API_KEY` | Yes | Google AI Studio API key (used with Gemini 2.5 Flash) |
+| `AI_API_KEY` | Yes | OpenAI API key (used with gpt-4.1-nano) |
 | `WEATHER_API_KEY` | Yes | OpenWeatherMap API key |
 | `BETTERAUTH_SECRET` | Yes | Random string ≥ 32 characters used to sign sessions (`openssl rand -base64 32`) |
 | `PORT` | No | API port (default: `3000`) |
@@ -195,7 +195,7 @@ MongoDB Atlas (free M0)  ←  Railway (backend Docker)  ←  Vercel (frontend)
 | Variable | Value |
 |----------|-------|
 | `MONGODB_URI` | Atlas connection string |
-| `AI_API_KEY` | Google AI Studio API key |
+| `AI_API_KEY` | OpenAI API key |
 | `WEATHER_API_KEY` | OpenWeatherMap API key |
 | `BETTERAUTH_SECRET` | Random string ≥ 32 chars (`openssl rand -base64 32`) |
 | `API_URL` | `https://your-app.railway.app` (Railway-assigned URL) |
@@ -312,7 +312,7 @@ Wiring sequence in `container.ts`:
 
 ### AI Provider
 
-The `AiSdkProvider` wraps the Vercel AI SDK's `streamText` function using **Google Gemini 2.5 Flash** as the model. It exposes the `IAIProvider` port, so the model can be swapped (e.g., to Anthropic Claude or OpenAI) by replacing only the adapter without touching any use case or domain code.
+The `AiSdkProvider` wraps the Vercel AI SDK's `streamText` function using **OpenAI gpt-4.1-nano** as the model. It exposes the `IAIProvider` port, so the model can be swapped (e.g., to Anthropic Claude or Google Gemini) by replacing only the adapter without touching any use case or domain code.
 
 Available tools injected at construction time:
 
@@ -329,7 +329,7 @@ User submits message
     → POST /api/stream (Hono route)
     → SendMessageUseCase.execute()
     → IAIProvider.stream()          ← domain port
-    → AiSdkProvider.stream()        ← secondary adapter (Gemini 2.5 Flash)
+    → AiSdkProvider.stream()        ← secondary adapter (gpt-4.1-nano)
     → Vercel AI SDK streamText()
     → yields text deltas → streamed to browser via SSE
     → yields tool_result events after all steps complete
@@ -454,7 +454,7 @@ This loop made it easy to pause, redirect, or override decisions at every phase 
 ## What Would Be Improved
 
 -Full chat history sent in every message (Cost + Correctness)
-The SendMessageUseCase sends the entire chat history to the model without a limit. If a chat has 200 messages, it sends all of them in every request. This can exceed the context window of Gemini (1M tokens), makes the cost very high, and eventually causes a context_length_exceeded error.
+The SendMessageUseCase sends the entire chat history to the model without a limit. If a chat has 200 messages, it sends all of them in every request. This can exceed the context window of gpt-4.1-nano (1M tokens), makes the cost very high, and eventually causes a context_length_exceeded error.
 Solution: Limit the history to the last N messages or by token count.
 
 -No schema validation in stream route

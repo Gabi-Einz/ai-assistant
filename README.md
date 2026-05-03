@@ -368,3 +368,45 @@ This loop made it easy to pause, redirect, or override decisions at every phase 
 ---
 
 ## What Would Be Improved
+
+-Full chat history sent in every message (Cost + Correctness)
+The SendMessageUseCase sends the entire chat history to the model without a limit. If a chat has 200 messages, it sends all of them in every request. This can exceed the context window of Gemini (1M tokens), makes the cost very high, and eventually causes a context_length_exceeded error.
+Solution: Limit the history to the last N messages or by token count.
+
+-No schema validation in stream route
+The POST request body uses a type assertion (as { chatId... }) instead of real parsing. If the data is broken, it goes straight to the code.
+Solution: Use a Zod schema to validate that chatId and content are correct.
+
+-No pagination in message search
+findByChatId() loads all messages from a chat into memory at once. For long chats, this uses too much RAM.
+Solution: Use pagination to load only a few messages at a time.
+
+-MongoDB has no password in Docker
+The docker-compose.yml file starts MongoDB without a username or password. Anyone on the same network can read or delete the data.
+Solution: Add credentials (Username/Password) to the config and the connection string.
+
+-No graceful shutdown
+The app does not listen for "stop" signals (SIGTERM). When Docker stops the container, MongoDB connections close instantly. This can corrupt data that is being written.
+Solution: Add code to wait for operations to finish before closing.
+
+-Chat search has no debounce
+Every time you press a key in the search bar, it sends a request to the server. This is too many database queries.
+Solution: Add a 300ms debounce so it only searches when the user stops typing.
+
+-UI only shows the first tool result
+If the AI uses two tools (like date + weather), the UI only shows the first one and ignores the second.
+Solution: Change the code to show all tool results.
+
+-Docker runs as root
+The app runs as "root" (admin) inside the container. If there is a security bug, the hacker has full control.
+Solution: Add USER bun in the Dockerfile to run the app with less power.
+
+-Add enums to avoid hardcoded values.
+
+-Migrate to NestJs to avoid manual Dependency Injection and get all the benefits of that framework.
+
+-Add CI/CD tu run the project in every push with typecheck and tests.
+
+-Add pretier. Prettier prevents every file from having different conventions for indentation, quotes, trailing commas, etc.—especially useful if there is more than one developer.
+
+-Add swagger to document endpoints.

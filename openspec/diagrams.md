@@ -30,7 +30,7 @@ graph TB
     subgraph SECONDARY["Infrastructure — Secondary Adapters"]
         MCR["MongoChatRepository"]
         MMR["MongoMessageRepository"]
-        AI["AiSdkProvider"]
+        AI["AiSdkProvider\n(Google Gemini 2.5 Flash)"]
         TOOLS["Tool Adapters\nget_date · get_time · get_weather"]
         BA["BetterAuth Adapter"]
     end
@@ -101,6 +101,7 @@ classDiagram
         <<interface>>
         +save(message) Message
         +findByChatId(chatId) Message[]
+        +deleteByChatId(chatId) void
     }
 
     class IAIProvider {
@@ -187,11 +188,12 @@ classDiagram
         -Collection~Message~ collection
         +save(message) Message
         +findByChatId(chatId) Message[]
+        +deleteByChatId(chatId) void
     }
 
     class AiSdkProvider {
         -LanguageModel model
-        -ToolRegistry tools
+        -Record~string Tool~ tools
         +stream(history, tools) AsyncIterable~StreamEvent~
     }
 
@@ -268,6 +270,7 @@ erDiagram
 sequenceDiagram
     actor User
     participant Browser
+    participant QueryClient as React Query Cache
     participant Server as Hono Server (SSR)
     participant BetterAuth
     participant MongoDB
@@ -280,19 +283,29 @@ sequenceDiagram
 
     Note over Browser: Client hydrates — TanStack Router takes over
 
-    User->>Browser: fill register form (email + password)
+    User->>Browser: fill login form (email + password)
     Browser->>Browser: TanStack Form validates via Zod schema
     User->>Browser: submit
 
-    Browser->>Server: tRPC mutation — auth.register({ email, password })
-    Server->>BetterAuth: register(email, password)
-    BetterAuth->>MongoDB: insert user document
-    MongoDB-->>BetterAuth: user created
+    Browser->>BetterAuth: signIn.email({ email, password })
+    BetterAuth->>MongoDB: lookup user + verify password
+    MongoDB-->>BetterAuth: user found
     BetterAuth->>MongoDB: insert session document
     MongoDB-->>BetterAuth: session created
-    BetterAuth-->>Server: session token
-    Server-->>Browser: Set-Cookie: session=token
-    Browser->>Browser: redirect to /chat (client-side)
+    BetterAuth-->>Browser: Set-Cookie: session=token
+
+    Browser->>QueryClient: queryClient.clear()
+    Note over QueryClient: Stale data from any previous account is removed
+
+    Browser->>Browser: navigate to /chat
+
+    Note over User, MongoDB: Logout flow
+    User->>Browser: click Logout button (sidebar)
+    Browser->>BetterAuth: signOut()
+    BetterAuth->>MongoDB: revoke session
+    Browser->>QueryClient: queryClient.clear()
+    Note over QueryClient: Cache wiped — next login starts fresh
+    Browser->>Browser: navigate to /auth
 ```
 
 ---
@@ -303,48 +316,52 @@ sequenceDiagram
 sequenceDiagram
     actor User
     participant Browser
-    participant tRPC as tRPC Procedure
+    participant SSE as POST /api/stream
     participant UC as SendMessageUseCase
     participant MsgRepo as MongoMessageRepository
     participant AI as AiSdkProvider
-    participant AISDK as AI SDK (streamText)
+    participant AISDK as Vercel AI SDK (streamText)
     participant Tools as Tool Adapters
 
     User->>Browser: type message and submit
-    Browser->>Browser: TanStack Query mutation triggered (CSR)
-    Browser->>tRPC: messages.send({ chatId, content })
-    tRPC->>UC: execute(chatId, userId, content)
+    Browser->>SSE: POST /api/stream { chatId, content }
+    SSE->>UC: execute(chatId, userId, content)
 
     UC->>MsgRepo: save(userMessage)
-    MsgRepo-->>UC: message persisted
-
-    UC->>AI: stream(messageHistory, toolRegistry)
-    AI->>AISDK: streamText({ model, messages, tools })
-
-    loop Streaming deltas
-        AISDK-->>AI: text delta
-        AI-->>UC: StreamEvent { type: "text", delta }
-        UC-->>tRPC: yield StreamEvent
-        tRPC-->>Browser: SSE chunk
-        Browser->>Browser: append delta to message UI
-    end
-
-    opt Tool call detected
-        AISDK->>Tools: execute tool (get_date / get_time / get_weather)
-        Tools-->>AISDK: typed ToolPayload
-        AISDK-->>AI: StreamEvent { type: "tool_result", toolName, payload }
-        AI-->>UC: yield StreamEvent
-        UC-->>tRPC: yield StreamEvent
-        tRPC-->>Browser: SSE chunk (tool result)
-        Browser->>Browser: render dedicated ToolResultCard component
-    end
-
-    AISDK-->>AI: stream end
-    AI-->>UC: stream complete
-    UC->>MsgRepo: save(assistantMessage with toolResults)
     MsgRepo-->>UC: persisted
-    UC-->>tRPC: stream closed
-    tRPC-->>Browser: SSE closed
+
+    UC->>AI: stream(messageHistory)
+    AI->>AISDK: streamText({ model: Gemini 2.5 Flash, system, messages, tools, maxSteps: 5 })
+
+    loop Text deltas (fullStream)
+        AISDK-->>AI: TextDeltaPart { type: "text-delta", textDelta }
+        AI-->>UC: StreamEvent { type: "text", delta }
+        UC-->>SSE: yield event
+        SSE-->>Browser: SSE chunk
+        Browser->>Browser: append delta to StreamingMessage bubble
+    end
+
+    opt Tool call (within fullStream steps)
+        AISDK->>Tools: execute get_date / get_time / get_weather
+        Tools-->>AISDK: typed ToolPayload
+        Note over AISDK: Tool result feeds next step context
+    end
+
+    Note over AI: fullStream exhausted — collect tool results from steps
+    loop Tool results (post-stream)
+        AI-->>UC: StreamEvent { type: "tool_result", toolName, payload }
+        UC-->>SSE: yield event
+        SSE-->>Browser: SSE chunk
+        Browser->>Browser: ToolResultModal opens automatically
+        Browser->>Browser: tool button (🔧 toolName) rendered below AI text
+    end
+
+    AISDK-->>AI: stream complete
+    UC->>MsgRepo: save(assistantMessage { content, toolResults })
+    MsgRepo-->>UC: persisted
+    SSE-->>Browser: SSE [DONE]
+    Browser->>Browser: invalidate message list query
+    Browser->>Browser: StreamingMessage unmounts → MessageBubble rendered
 ```
 
 ---
@@ -360,43 +377,46 @@ sequenceDiagram
     participant Repo as MongoChatRepository
 
     Note over User, Repo: Create Chat
-    User->>Browser: click "New Chat"
-    Browser->>tRPC: chats.create({ title })
+    User->>Browser: click "+ New Chat"
+    Browser->>tRPC: chat.create({ title })
     tRPC->>UC: CreateChatUseCase.execute(userId, title)
     UC->>Repo: create(userId, title)
     Repo-->>UC: Chat
-    UC-->>tRPC: Chat
     tRPC-->>Browser: Chat
     Browser->>Browser: write chatId to URL, load conversation
 
     Note over User, Repo: Rename Chat
-    User->>Browser: inline edit title and confirm
-    Browser->>tRPC: chats.rename({ chatId, title })
+    User->>Browser: click ✏️ icon, edit title inline, press Enter
+    Browser->>tRPC: chat.rename({ chatId, title })
     tRPC->>UC: RenameChatUseCase.execute(chatId, userId, title)
     UC->>Repo: rename(chatId, title)
     Repo-->>UC: ok
     Browser->>Browser: TanStack Query invalidates chat list
 
     Note over User, Repo: Pin / Unpin Chat
-    User->>Browser: click pin icon
-    Browser->>tRPC: chats.togglePin({ chatId })
+    User->>Browser: click 📌 icon
+    Browser->>Browser: optimistic update (isPinned toggled in cache)
+    Browser->>tRPC: chat.togglePin({ chatId })
     tRPC->>UC: PinChatUseCase.execute(chatId, userId)
     UC->>Repo: togglePin(chatId)
     Repo-->>UC: ok
     Browser->>Browser: sidebar re-sorts (pinned first)
 
-    Note over User, Repo: Delete Chat
-    User->>Browser: click delete and confirm
-    Browser->>tRPC: chats.delete({ chatId })
+    Note over User, Repo: Delete Chat (two-step confirm)
+    User->>Browser: click 🗑️ icon (first click — shows ✓ button, stays visible)
+    User->>Browser: click ✓ icon (second click — confirms deletion)
+    Browser->>tRPC: chat.delete({ chatId })
     tRPC->>UC: DeleteChatUseCase.execute(chatId, userId)
-    UC->>Repo: delete(chatId) and deleteMessagesByChatId(chatId)
+    UC->>Repo: findById(chatId) — verify ownership
+    UC->>Repo: deleteByChatId(chatId) — remove messages
+    UC->>Repo: delete(chatId) — remove chat
     Repo-->>UC: ok
     Browser->>Browser: redirect if active chat deleted, invalidate list
 
     Note over User, Repo: Search Chats
     User->>Browser: type in search input
-    Browser->>Browser: debounce, write query to URL param ?q=
-    Browser->>tRPC: chats.search({ query })
+    Browser->>Browser: write query to URL param ?q=
+    Browser->>tRPC: chat.search({ query })
     tRPC->>UC: SearchChatsUseCase.execute(userId, query)
     UC->>Repo: searchByTitle(userId, query)
     Repo-->>UC: Chat[] from MongoDB text index
@@ -417,20 +437,29 @@ graph TD
 
     AUTH_PAGE --> AUTH_TABS["AuthTabs\n(register / login tabs)"]
     AUTH_TABS --> REGISTER_FORM["RegisterForm\n(TanStack Form + Zod)"]
-    AUTH_TABS --> LOGIN_FORM["LoginForm\n(TanStack Form + Zod)"]
+    AUTH_TABS --> LOGIN_FORM["LoginForm\n(TanStack Form + Zod)\nqueryClient.clear() on success"]
 
     CHAT_PAGE --> SIDEBAR["Sidebar"]
-    CHAT_PAGE --> CONVERSATION["Conversation"]
+    CHAT_PAGE --> CONVERSATION["Conversation\n(manages stream state)"]
 
-    SIDEBAR --> SEARCH_INPUT["SearchInput\n(debounced, URL param q)"]
-    SIDEBAR --> CHAT_LIST["ChatList\n(useInfiniteQuery)"]
-    CHAT_LIST --> CHAT_ITEM["ChatItem\n(title · pin · rename · delete)"]
+    SIDEBAR --> SEARCH_INPUT["SearchInput\n(debounced, URL param ?q)"]
+    SIDEBAR --> CHAT_LIST["ChatList\n(useInfiniteQuery + IntersectionObserver)"]
+    CHAT_LIST --> CHAT_ITEM["ChatItem\n(📌 pin · ✏️ rename · 🗑️ delete — 2-step confirm)"]
+    SIDEBAR --> LOGOUT_BTN["Logout Button\nqueryClient.clear() + signOut()"]
 
     CONVERSATION --> MESSAGE_LIST["MessageList"]
     CONVERSATION --> MESSAGE_INPUT["MessageInput\n(submit triggers SSE stream)"]
 
-    MESSAGE_LIST --> TEXT_MESSAGE["TextMessage\n(streaming delta render — CSR only)"]
-    MESSAGE_LIST --> TOOL_RESULT_CARD["ToolResultCard\n(dispatches by toolName — CSR only)"]
+    MESSAGE_LIST --> MSG_BUBBLE["MessageBubble\n(persisted messages)"]
+    MESSAGE_LIST --> STREAMING_MSG["StreamingMessage\n(live during SSE — CSR only)"]
+
+    MSG_BUBBLE --> TOOL_BTN["🔧 toolName button\n(per tool result)"]
+    TOOL_BTN --> MODAL_SAVED["ToolResultModal\n(open on click)"]
+
+    STREAMING_MSG --> MODAL_STREAM["ToolResultModal\n(auto-open on tool_result event)"]
+
+    MODAL_SAVED --> TOOL_RESULT_CARD["ToolResultCard\n(dispatches by toolName)"]
+    MODAL_STREAM --> TOOL_RESULT_CARD
 
     TOOL_RESULT_CARD --> DATE_CARD["DateCard"]
     TOOL_RESULT_CARD --> TIME_CARD["TimeCard"]
@@ -459,7 +488,11 @@ flowchart TD
 
     USER_ACTION -->|"Navigate / search / manage"| CSR_QUERY["TanStack Query\nmutation or query (CSR)"]
     USER_ACTION -->|"Send message"| STREAM["SSE stream\n(CSR only — ReadableStream)"]
-    STREAM --> RENDER_STREAM["Render text deltas\n+ ToolResultCard\n(client-only, never SSR)"]
+    STREAM --> RENDER_TEXT["StreamingMessage renders\ntext deltas live"]
+    RENDER_TEXT --> TOOL_EVENT{tool_result event?}
+    TOOL_EVENT -->|Yes| OPEN_MODAL["ToolResultModal opens automatically\ntext stays in chat bubble\ntool data shown in popup"]
+    TOOL_EVENT -->|No| STREAM_END["Stream ends\nMessageBubble renders persisted message"]
+    OPEN_MODAL --> STREAM_END
 ```
 
 ---
@@ -473,35 +506,9 @@ flowchart LR
     STEP3["3. Implement external provider\ninfrastructure/\nNewProviderImpl implements INewProvider"] -->
     STEP4["4. Wire in composition root\ninfrastructure/container.ts\ninject NewProviderImpl into tool"] -->
     STEP5["5. Register in tool barrel\ninfrastructure/tools/index.ts"] -->
-    STEP6["6. Add UI component\napps/web/\nNewDataCard.tsx\nregister in toolName to UIComponent map"]
+    STEP6["6. Add UI card component\napps/web/components/conversation/tools/\nNewDataCard.tsx"] -->
+    STEP7["7. Register card in registry\nToolResultCard.tsx\nadd toolName → NewDataCard mapping"]
 ```
 
 ---
 
-## 11. DI Wiring — Composition Root
-
-```mermaid
-flowchart TB
-    subgraph CONTAINER["container.ts — Composition Root"]
-        direction TB
-        DB["MongoDB db handle"] --> MCR["MongoChatRepository"]
-        DB --> MMR["MongoMessageRepository"]
-        AISDK_CLIENT["AI SDK model client"] --> AI["AiSdkProvider"]
-        DT["System Clock"] --> DTP["DateTimeProvider"]
-        WEATHER_API["Weather API client"] --> WP["WeatherProvider"]
-
-        DTP & WP --> TOOLS["Tool Adapters\nget_date · get_time · get_weather"]
-
-        MCR & MMR & AI --> SM["SendMessageUseCase"]
-        MCR --> CC["CreateChatUseCase"]
-        MCR --> LC["ListChatsUseCase"]
-        MCR & MMR --> DC["DeleteChatUseCase"]
-        MCR --> RC["RenameChatUseCase"]
-        MCR --> PC["PinChatUseCase"]
-        MCR --> SC["SearchChatsUseCase"]
-        MMR --> LM["ListMessagesUseCase"]
-    end
-
-    CONTAINER -->|"attached per request"| CTX["tRPC Context\n(context.ts)"]
-    CTX -->|"consumed by"| PROC["tRPC Procedures"]
-```

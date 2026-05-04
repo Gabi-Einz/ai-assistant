@@ -16,9 +16,16 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
   ],
-  resolve: {
-    alias: {
-      "node:async_hooks": path.resolve("./app/polyfills/async-hooks.ts"),
+  environments: {
+    // Polyfill node:async_hooks only in the browser bundle.
+    // The server (ssr) environment uses the real Node.js AsyncLocalStorage so
+    // async context survives across await boundaries.
+    client: {
+      resolve: {
+        alias: {
+          "node:async_hooks": path.resolve("./app/polyfills/async-hooks.ts"),
+        },
+      },
     },
   },
 });

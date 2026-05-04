@@ -1,6 +1,7 @@
 import { cpSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { build } from 'esbuild'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const root = resolve(__dirname, '..')
@@ -11,16 +12,22 @@ rmSync(outDir, { recursive: true, force: true })
 mkdirSync(`${outDir}/static`, { recursive: true })
 mkdirSync(`${outDir}/functions/index.func`, { recursive: true })
 
-// Static client assets → served as-is
+// Static client assets → served by Vercel CDN
 cpSync(`${root}/dist/client`, `${outDir}/static`, { recursive: true })
 
-// Server bundle → Vercel Node.js function
-cpSync(`${root}/dist/server`, `${outDir}/functions/index.func`, { recursive: true })
+// Bundle the Vite-built server into a single self-contained ESM file.
+// dist/server/server.js has external npm imports (react, @tanstack/...) that
+// need to be inlined so the Vercel function has no missing dependencies.
+await build({
+  entryPoints: [`${root}/dist/server/server.js`],
+  bundle: true,
+  platform: 'node',
+  format: 'esm',
+  external: ['node:*'],
+  outfile: `${outDir}/functions/index.func/server.js`,
+})
 
-// ESM package marker so .js chunks are treated as modules
-writeFileSync(`${outDir}/functions/index.func/package.json`, JSON.stringify({ type: 'module' }))
-
-// Thin Node.js ↔ Web Fetch adapter wrapping the TanStack Start fetch handler
+// Thin Node.js IncomingMessage ↔ Web Fetch adapter
 writeFileSync(
   `${outDir}/functions/index.func/index.mjs`,
   `import server from './server.js'
@@ -72,15 +79,12 @@ writeFileSync(
     {
       version: 3,
       routes: [
-        // Cache hashed static assets forever
         {
           src: '/assets/(.+)',
           headers: { 'cache-control': 'public, max-age=31536000, immutable' },
           continue: true,
         },
-        // Serve static files first
         { handle: 'filesystem' },
-        // Everything else → SSR function
         { src: '/(.*)', dest: '/index' },
       ],
     },

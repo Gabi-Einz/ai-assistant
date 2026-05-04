@@ -24,6 +24,11 @@ await build({
   platform: 'node',
   format: 'esm',
   external: ['node:*'],
+  // CJS packages (react-dom, etc.) call require('util') at runtime.
+  // In an ESM bundle there is no require global, so inject one via createRequire.
+  banner: {
+    js: `import { createRequire } from 'node:module';\nconst require = createRequire(import.meta.url);`,
+  },
   outfile: `${outDir}/functions/index.func/server.js`,
 })
 

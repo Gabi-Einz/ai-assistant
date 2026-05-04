@@ -11,12 +11,7 @@ export default defineConfig({
   },
   envDir: "../../",
   plugins: [
-    tanstackStart({
-      srcDirectory: "app",
-      server: {
-        preset: process.env.NITRO_PRESET ?? "node",
-      },
-    }),
+    tanstackStart({ srcDirectory: "app" }),
     react(),
     tailwindcss(),
     tsconfigPaths(),

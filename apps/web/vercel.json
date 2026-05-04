@@ -1,8 +1,4 @@
 {
   "framework": null,
-  "buildCommand": "pnpm build",
-  "outputDirectory": ".vercel/output",
-  "buildEnv": {
-    "NITRO_PRESET": "vercel"
-  }
+  "buildCommand": "pnpm build"
 }

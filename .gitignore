@@ -29,3 +29,5 @@ app.config.timestamp_*.js
 Thumbs.db
 
 .gitkeep
+.vercel
+.env*.local

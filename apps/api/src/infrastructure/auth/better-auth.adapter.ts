@@ -11,10 +11,14 @@ export function createBetterAuth(db: Db) {
     baseURL: env.API_URL,
     trustedOrigins: (request) => {
       const origin = request?.headers?.get('origin') ?? '';
-      if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      const webUrl = env.WEB_URL.replace(/\/$/, '');
+      if (
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin) ||
+        origin.endsWith('.vercel.app')
+      ) {
         return [origin];
       }
-      return [env.WEB_URL];
+      return [webUrl];
     },
   });
 }

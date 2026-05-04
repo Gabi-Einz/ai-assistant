@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { ToolPayload } from "@repo/shared";
 import { ToolResultModal } from "./ToolResultModal";
 
@@ -10,10 +10,6 @@ interface StreamingMessageProps {
 export function StreamingMessage({ text, toolResults }: StreamingMessageProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const hasTools = toolResults.length > 0;
-
-  useEffect(() => {
-    if (hasTools) setIsModalOpen(true);
-  }, [hasTools]);
 
   return (
     <div className="flex justify-start">

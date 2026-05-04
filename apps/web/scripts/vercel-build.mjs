@@ -68,6 +68,9 @@ export default async function handler(req, res) {
 `,
 )
 
+// Mark function directory as ESM so Node.js loads server.js as a module
+writeFileSync(`${outDir}/functions/index.func/package.json`, JSON.stringify({ type: 'module' }))
+
 writeFileSync(
   `${outDir}/functions/index.func/.vc-config.json`,
   JSON.stringify({ runtime: 'nodejs22.x', handler: 'index.mjs' }, null, 2),

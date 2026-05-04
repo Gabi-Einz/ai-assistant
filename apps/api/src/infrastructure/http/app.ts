@@ -11,13 +11,18 @@ import { env } from '../../env';
 export function createApp(container: Container, auth: Auth): Hono {
   const app = new Hono();
 
+  const webUrl = env.WEB_URL.replace(/\/$/, '');
+
   const isLocalhost = (origin: string) =>
     /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+  const isAllowedOrigin = (origin: string) =>
+    isLocalhost(origin) || origin === webUrl || origin.endsWith('.vercel.app');
 
   app.use(
     '*',
     cors({
-      origin: (origin) => (origin && isLocalhost(origin) ? origin : env.WEB_URL),
+      origin: (origin) => (origin && isAllowedOrigin(origin) ? origin : webUrl),
       credentials: true,
       allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
       allowHeaders: ['Content-Type', 'Authorization'],
@@ -26,7 +31,7 @@ export function createApp(container: Container, auth: Auth): Hono {
 
   app.all('/api/auth/*', async (c) => {
     const origin = c.req.header('origin') ?? '';
-    const allowedOrigin = isLocalhost(origin) ? origin : env.WEB_URL;
+    const allowedOrigin = isAllowedOrigin(origin) ? origin : webUrl;
 
     if (c.req.method === 'OPTIONS') {
       return new Response(null, {

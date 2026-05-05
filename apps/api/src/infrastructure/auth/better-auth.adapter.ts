@@ -9,6 +9,13 @@ export function createBetterAuth(db: Db) {
     emailAndPassword: { enabled: true },
     secret: env.BETTERAUTH_SECRET,
     baseURL: env.API_URL,
+    advanced: {
+      defaultCookieAttributes: {
+        sameSite: "none",
+        secure: true,
+        partitioned: true,
+      },
+    },
     trustedOrigins: (request) => {
       const origin = request?.headers?.get('origin') ?? '';
       const webUrl = env.WEB_URL.replace(/\/$/, '');

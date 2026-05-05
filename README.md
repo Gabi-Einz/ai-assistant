@@ -496,3 +496,5 @@ Solution: Add USER bun in the Dockerfile to run the app with less power.
 -Add swagger to document endpoints.
 
 -Improve test coverage.
+
+-Visual improvements.

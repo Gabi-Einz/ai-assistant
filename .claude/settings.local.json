@@ -69,7 +69,8 @@
       "Bash(playwright-cli console *)",
       "Bash(npm view *)",
       "PowerShell(npm view *)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(vercel ls *)"
     ]
   }
 }

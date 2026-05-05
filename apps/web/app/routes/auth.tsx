@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Card, CardContent } from "@heroui/react";
-import { getServerSession } from "~/lib/auth-fns";
+import { authClient } from "~/lib/auth-client";
 import { RegisterForm } from "~/components/auth/RegisterForm";
 import { LoginForm } from "~/components/auth/LoginForm";
 
 export const Route = createFileRoute("/auth")({
   beforeLoad: async () => {
-    const session = await getServerSession();
-    if (session?.session) {
+    if (typeof document === "undefined") return;
+    const { data } = await authClient.getSession();
+    if (data?.session) {
       throw redirect({ to: "/chat" as any });
     }
   },

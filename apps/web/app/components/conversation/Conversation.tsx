@@ -38,6 +38,11 @@ export function Conversation() {
             setStreamingTools((prev) => [...prev, event.payload]);
           }
         }
+        // Clear streaming state before invalidating so the StreamingMessage
+        // is already gone when the refetch delivers the saved messages.
+        setIsStreaming(false);
+        setStreamingText("");
+        setStreamingTools([]);
         await utils.message.list.invalidate({ chatId });
         await utils.chat.list.invalidate();
       } catch (err) {
